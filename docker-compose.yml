@@ -1,0 +1,13 @@
+services:
+  appmylifehub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: appmylifehub
+    container_name: appmylifehub
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - "5174:5174"
+    command: npm run dev
