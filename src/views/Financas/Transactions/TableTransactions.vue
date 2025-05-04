@@ -204,8 +204,8 @@ const saveTransaction = async () => {
   emit('save:transaction', {
     transaction: transaction.value,
     status: selectedStatus.value.name,
-    is_recurring: !isEdit.value,
-    recurring_count: !isEdit.value ? recorrent.value : 0,
+    is_recurring: recorrent.value > 0,
+    recurring_count: recorrent.value,
   });
   submitted.value = false;
   transactionDialog.value = false;
