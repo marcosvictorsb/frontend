@@ -111,7 +111,7 @@
       <template #footer>
           <Button label="Cancelar" icon="pi pi-times" text @click="hideDialog" />
           <Button v-if="!isEdit" label="Salvar" icon="pi pi-check" @click="saveTransaction" />
-          <Button label="Editar" icon="pi pi-check" @click="editedTransaction" />
+          <Button v-if="isEdit" label="Editar" icon="pi pi-check" @click="editedTransaction" />
       </template>
     </Dialog>
 
