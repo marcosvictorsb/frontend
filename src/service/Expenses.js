@@ -36,6 +36,10 @@ class ExpensesService {
   async updateExpense(transaction) {
     return await this.api.put(`/expenses/${transaction.id}`, transaction, this.config)
   }
+
+  async getTotalExpenses() {
+    return await this.api.get(`/expenses/calculate`, this.config)      
+  }
 }
 
 export default new ExpensesService()

@@ -2,6 +2,9 @@
   <ConfirmDialog :pt="{ content: { style: { fontSize: '18px' } } }" />
   <Loading v-if="loading" />
   <Toast />
+  <Resume class="mt-20" 
+    :totalExpense="totalExpense"
+  />
   <TableTransactions 
     :transactions="transactions"
     @delete:transaction="deleteTransaction"
@@ -16,11 +19,55 @@ import IncomesService from '@/service/Incomes'
 import { useToast } from 'primevue/usetoast'
 import { ref } from 'vue'
 import TableTransactions from './TableTransactions.vue'
+import Resume from './Resume.vue'
 
 const transactions = ref([])
 const loading = ref(false)
-
 const toast = useToast()
+const totalExpense = ref(0)
+
+
+const currentDate = () => {
+  const date = new Date()
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  return { year, month }
+}
+
+// metodos api expense
+
+const getTotalExpense = async () => {
+  try {
+    const { status, response }  = await ExpensesService.getTotalExpenses()
+    return response.total_expense
+  } catch (error) {
+    console.error('Error getting transactions', err)
+    return
+  }
+}
+
+const getExpenses = async () => {
+  try {
+    const { year, month } = currentDate()
+    const { status, response }  = await ExpensesService.getExpenses({ year, month })
+    return response ?? []
+
+  } catch (err) {
+    console.error('Error getting transactions', err)
+    return
+  }
+}
+
+const getIncomes = async () => {
+  try {
+    const { year, month } = currentDate()
+    const { status, response }  = await IncomesService.getIncomes({ year, month })
+    return response ?? []
+  } catch (err) {
+    console.error('Error getting transactions', err)
+    return
+  }
+}
 
 const deleteTransaction = async ({ id, isIncome }) => {
   try {
@@ -66,7 +113,6 @@ const saveTransaction = async ({ transaction, is_recurring, recurring_count, sta
 
 const editTransaction = async (transaction) => {
   try {
-    console.log('transaction ---------------->', transaction)
 
     if(transaction.isIncome) {
       await IncomesService.updateIncome(transaction);
@@ -82,45 +128,19 @@ const editTransaction = async (transaction) => {
   }
 }
 
-const currentDate = () => {
-  const date = new Date()
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  return { year, month }
-}
-
-const getExpenses = async () => {
-  try {
-    const { year, month } = currentDate()
-    const { status, response }  = await ExpensesService.getExpenses({ year, month })
-    return response ?? []
-
-  } catch (err) {
-    console.error('Error getting transactions', err)
-    return
-  }
-}
-
-const getIncomes = async () => {
-  try {
-    const { year, month } = currentDate()
-    const { status, response }  = await IncomesService.getIncomes({ year, month })
-    return response ?? []
-  } catch (err) {
-    console.error('Error getting transactions', err)
-    return
-  }
-}
 
 const init = async () => {
   loading.value = true
   const incomes = await getIncomes();
   const expenses = await getExpenses();
   transactions.value = [...incomes, ...expenses];
-  
+
+  totalExpense.value = await getTotalExpense(); 
 
   loading.value = false
 }
+
+// metodos api expense
 
 init()
 </script>

@@ -1,7 +1,7 @@
 
 <template>
   <div>
-    <div class="card mt-20">
+    <div class="card mt-2">
       <Toolbar class="mb-6">
           <template #start>
               
@@ -56,9 +56,7 @@
             <template #body="slotProps">
               <Tag :value="slotProps.data.status" :severity="getSeverityStatus(slotProps.data)" />
             </template>
-          </Column>        
-          
-
+          </Column> 
           
           <Column :exportable="false" header="Ações" style="min-width: 12rem">
               <template #body="slotProps">
