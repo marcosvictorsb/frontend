@@ -12,6 +12,7 @@
 <script setup>
 import Loading from '@/components/Loading/Loading.vue'
 import ExpensesService from '@/service/Expenses'
+import IncomesService from '@/service/Incomes'
 import { useToast } from 'primevue/usetoast'
 import { ref } from 'vue'
 import TableTransactions from './TableTransactions.vue'
@@ -21,9 +22,13 @@ const loading = ref(false)
 
 const toast = useToast()
 
-const deleteTransaction = async (id) => {
+const deleteTransaction = async ({ id, isIncome }) => {
   try {
-    await ExpensesService.deleteExpense(id)  
+    if(isIncome) {
+      await IncomesService.deleteIncome(id)
+    } else {
+      await ExpensesService.deleteExpense(id)
+    }
     toast.add({severity:'success', summary: 'Successful', detail: 'Registro deletado', life: 3000});
     init()
   } catch (error) {
@@ -32,14 +37,24 @@ const deleteTransaction = async (id) => {
   }
 }
 
-const saveTransaction = async ({ transaction, is_recurring, recurring_count, status  }) => {
+const saveTransaction = async ({ transaction, is_recurring, recurring_count, status, isIncome  }) => {
   try {
-    await ExpensesService.createExpense({
-      ...transaction,
-      status,
-      is_recurring,
-      recurring_count,
-    });
+    if(isIncome) {
+      await IncomesService.createIncome({
+        ...transaction,
+        status,
+        is_recurring,
+        recurring_count,
+      });
+    } else {
+      await ExpensesService.createExpense({
+        ...transaction,
+        status,
+        is_recurring,
+        recurring_count,
+      });
+    }
+    
 
     toast.add({severity:'success', summary: 'Successful', detail: 'Registro salvo', life: 3000});
     init()
@@ -51,7 +66,13 @@ const saveTransaction = async ({ transaction, is_recurring, recurring_count, sta
 
 const editTransaction = async (transaction) => {
   try {
-    await ExpensesService.updateExpense(transaction);
+    console.log('transaction ---------------->', transaction)
+
+    if(transaction.isIncome) {
+      await IncomesService.updateIncome(transaction);
+    } else {
+      await ExpensesService.updateExpense(transaction);
+    }
 
     toast.add({severity:'success', summary: 'Successful', detail: 'Registro editado', life: 3000});
     init()
@@ -72,12 +93,19 @@ const getExpenses = async () => {
   try {
     const { year, month } = currentDate()
     const { status, response }  = await ExpensesService.getExpenses({ year, month })
+    return response ?? []
 
-    console.log(response)
-    transactions.value = response ?? []
-    
-    
+  } catch (err) {
+    console.error('Error getting transactions', err)
+    return
+  }
+}
 
+const getIncomes = async () => {
+  try {
+    const { year, month } = currentDate()
+    const { status, response }  = await IncomesService.getIncomes({ year, month })
+    return response ?? []
   } catch (err) {
     console.error('Error getting transactions', err)
     return
@@ -86,7 +114,10 @@ const getExpenses = async () => {
 
 const init = async () => {
   loading.value = true
-  await getExpenses()
+  const incomes = await getIncomes();
+  const expenses = await getExpenses();
+  transactions.value = [...incomes, ...expenses];
+  
 
   loading.value = false
 }

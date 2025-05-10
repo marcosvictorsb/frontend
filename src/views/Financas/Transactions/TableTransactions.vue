@@ -8,22 +8,24 @@
           </template>
 
           <template #end>
-            <Button label="Despesa" icon="pi pi-plus" class="mr-2" @click="openNew" />
-            <Button label="Delete" icon="pi pi-trash" severity="danger" outlined @click="confirmDeleteSelected" :disabled="!selectedTransactions || !selectedTransactions.length" />              
+              <Button label="Receita" icon="pi pi-dollar"  severity="success" @click="openNew(isIncome = true)"/>
+              <Button label="Despesa" icon="pi pi-shopping-cart" severity="warn" class="ml-2" @click="openNew(isIncome = false)" />
+              <!-- <Button label="Delete" icon="pi pi-trash" severity="danger"  class="ml-1" outlined @click="confirmDeleteSelected" :disabled="!selectedTransactions || !selectedTransactions.length" />               -->
           </template>
       </Toolbar>
 
       <DataTable
-          ref="dt"
-          v-model:selection="selectedTransactions"
-          :value="transactions"
-          dataKey="id"
-          :paginator="true"
-          :rows="10"
-          :filters="filters"
-          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-          :rowsPerPageOptions="[5, 10, 25]"
-          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+        ref="dt"
+        v-model:selection="selectedTransactions"
+        :value="transactions"
+        dataKey="id"
+        :paginator="true"
+        :rows="10"
+        :filters="filters"
+        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+        :rowsPerPageOptions="[5, 10, 25]"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+        :size="'small'"
       >
           <template #header>
               <div class="flex flex-wrap gap-2 items-center justify-between">
@@ -45,8 +47,16 @@
             </template>
           </Column>
           <Column field="reference_month" header="Mês de Referência" sortable style="min-width: 16rem"></Column>
-          <Column field="type" header="Tipo" sortable style="min-width: 16rem"></Column>
-          <Column field="status" header="Status" sortable style="min-width: 16rem"></Column>         
+          <Column field="type" header="Tipo" sortable style="min-width: 16rem">
+            <template #body="slotProps">
+              <Tag :value="slotProps.data.type" :severity="getSeverityType(slotProps.data)" />
+            </template>
+          </Column>
+          <Column field="status" header="Status" sortable style="min-width: 16rem">
+            <template #body="slotProps">
+              <Tag :value="slotProps.data.status" :severity="getSeverityStatus(slotProps.data)" />
+            </template>
+          </Column>        
           
 
           
@@ -75,7 +85,7 @@
 
           <div class="col-span-6">
             <label for="status" class="block font-bold mb-3">Status</label>
-            <Select v-model="selectedStatus" :options="[{ name: 'pago', code:'pg'}, { name: 'pendente', code: 'pend' }]" optionLabel="name" placeholder="Selecione o status" class="w-full md:w-56">
+            <Select v-model="selectedStatus" :options="getOptionSelectedStatus(isIncome)" optionLabel="name" placeholder="Selecione o status" class="w-full md:w-56">
               <template #value="slotProps">
                 <div v-if="slotProps.value" class="flex items-center">
                   <img :alt="slotProps.value.label" src="https://primefaces.org/cdn/primevue/images/flag/flag_placeholder.png" :class="`mr-2 flag flag-${slotProps.value.code}`" style="width: 18px" />
@@ -110,8 +120,8 @@
 
       <template #footer>
           <Button label="Cancelar" icon="pi pi-times" text @click="hideDialog" />
-          <Button v-if="!isEdit" label="Salvar" icon="pi pi-check" @click="saveTransaction" />
-          <Button v-if="isEdit" label="Editar" icon="pi pi-check" @click="editedTransaction" />
+          <Button v-if="!isEdit" label="Salvar" icon="pi pi-check" @click="saveTransaction(isIncome)" />
+          <Button v-if="isEdit" label="Editar" icon="pi pi-check" @click="editedTransaction(isIncome)" />
       </template>
     </Dialog>
 
@@ -165,6 +175,7 @@ const selectedStatus = ref(null);
 const title = ref('');
 const recorrent = ref(0);
 const isEdit = ref(false);
+const isIncome = ref(false);
 
 defineProps({
   transactions: { type: Array, default: null },
@@ -185,13 +196,14 @@ const formatCurrency = (value) => {
   return 'R$ 0,00';
 };
 
-const openNew = () => {
+const openNew = (isIncomeModal) => {
   transaction.value = {};
   submitted.value = false;
   transactionDialog.value = true;
   title.value = 'Novo Registro';
   selectedStatus.value = null
   isEdit.value = false;
+  isIncome.value = isIncomeModal;
 };
 
 const hideDialog = () => {
@@ -206,6 +218,7 @@ const saveTransaction = async () => {
     status: selectedStatus.value.name,
     is_recurring: recorrent.value > 0,
     recurring_count: recorrent.value,
+    isIncome
   });
   submitted.value = false;
   transactionDialog.value = false;
@@ -228,6 +241,7 @@ const editedTransaction = () => {
     description: transaction.value.description,
     status: selectedStatus.value.name,
     amount: transaction.value.amount * 100,
+    isIncome: transaction.value.type === 'receita',
   });
   submitted.value = false;
   transactionDialog.value = false;
@@ -240,7 +254,10 @@ const confirmDeleteProduct = (prod) => {
 };
 
 const deleteTransaction = async () => {
-  emit('delete:transaction', transaction.value.id);
+  emit('delete:transaction', {
+    id: transaction.value.id,
+    isIncome: transaction.value.type === 'receita',
+  });
   deleteTransactionDialog.value = false;
 };
 
@@ -255,5 +272,41 @@ const deleteSelectedProducts = () => {
   selectedProducts.value = null;
   toast.add({severity:'success', summary: 'Successful', detail: 'Products Deleted', life: 3000});
 };
+
+const getSeverityStatus = (status) => {
+  switch (status.status) {
+    case 'pago':
+      return 'success';
+    case 'pendente':
+      return 'warn';
+    case 'recebido':
+      return 'success';
+    case 'aguardando receber':
+      return 'warn';   
+  }
+}
+
+const getSeverityType = (status) => {
+  switch (status.type) {
+    case 'despesa':
+      return 'danger';
+    case 'receita':
+      return 'success';
+  }
+}
+
+const getOptionSelectedStatus = (isIncome) => {
+  if(isIncome) {
+    return [
+      { name: 'Recebido', code: 'recebido' },
+      { name: 'Aguardando Receber', code: 'aguardando receber' },
+    ];
+  } else {
+    return [
+      { name: 'Pago', code: 'pago' },
+      { name: 'Pendente', code: 'pendente' },
+    ];
+  }
+}
 
 </script>
