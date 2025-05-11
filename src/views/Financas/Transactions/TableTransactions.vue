@@ -39,26 +39,26 @@
               </div>
           </template>
 
-          <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
+          <!-- <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column> -->
           <Column field="description" header="Descrição" sortable style="min-width: 12rem"></Column>
-          <Column field="amount" header="Valor" sortable style="min-width: 16rem">
+          <Column field="amount" header="Valor" sortable style="min-width: 8rem">
             <template #body="slotProps">
                 {{ formatCurrency(slotProps.data.amount) }}
             </template>
           </Column>
-          <Column field="reference_month" header="Mês de Referência" sortable style="min-width: 16rem"></Column>
-          <Column field="type" header="Tipo" sortable style="min-width: 16rem">
+          <Column field="reference_month" header="Mês de Referência" sortable style="min-width: 8rem"></Column>
+          <Column field="type" header="Tipo" sortable style="min-width: 8rem">
             <template #body="slotProps">
               <Tag :value="slotProps.data.type" :severity="getSeverityType(slotProps.data)" />
             </template>
-          </Column>
-          <Column field="status" header="Status" sortable style="min-width: 16rem">
+          </Column>          
+          <Column field="status" header="Status" sortable style="min-width: 8rem">
             <template #body="slotProps">
               <Tag :value="slotProps.data.status" :severity="getSeverityStatus(slotProps.data)" />
             </template>
           </Column> 
           
-          <Column :exportable="false" header="Ações" style="min-width: 12rem">
+          <Column :exportable="false" header="Ações" style="min-width: 6rem">
               <template #body="slotProps">
                   <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editTransaction(slotProps.data)" />
                   <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteProduct(slotProps.data)" />

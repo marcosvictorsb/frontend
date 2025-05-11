@@ -36,6 +36,12 @@ class IncomesService {
   async updateIncome(transaction) {
     return await this.api.put(`/incomes/${transaction.id}`, transaction, this.config)
   }
+
+  async getTotalIncomes() {
+    return await this.api.get('/incomes/calculate', this.config)
+  }
+
+  
 }
 
 export default new IncomesService()

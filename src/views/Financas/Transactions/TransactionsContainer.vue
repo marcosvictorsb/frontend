@@ -4,6 +4,7 @@
   <Toast />
   <Resume class="mt-20" 
     :totalExpense="totalExpense"
+    :totalIncomes="totalIncomes"
   />
   <TableTransactions 
     :transactions="transactions"
@@ -25,6 +26,7 @@ const transactions = ref([])
 const loading = ref(false)
 const toast = useToast()
 const totalExpense = ref(0)
+const totalIncomes = ref(0)
 
 
 const currentDate = () => {
@@ -40,6 +42,16 @@ const getTotalExpense = async () => {
   try {
     const { status, response }  = await ExpensesService.getTotalExpenses()
     return response.total_expense
+  } catch (error) {
+    console.error('Error getting transactions', err)
+    return
+  }
+}
+
+const getTotalIncomes = async () => {
+  try {
+    const { status, response }  = await IncomesService.getTotalIncomes()
+    return response.total_income
   } catch (error) {
     console.error('Error getting transactions', err)
     return
@@ -136,6 +148,7 @@ const init = async () => {
   transactions.value = [...incomes, ...expenses];
 
   totalExpense.value = await getTotalExpense(); 
+  totalIncomes.value = await getTotalIncomes();
 
   loading.value = false
 }

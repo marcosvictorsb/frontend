@@ -13,7 +13,7 @@
           <div class="w-1.5 rounded-full bg-blue-500"></div>
           <div>
             <h5 class="text-surface-500 dark:text-white/72">Receita</h5>
-            <p class="mt-1 text-xl font-medium text-surface-950 dark:text-surface-0">$12,942.50</p>
+            <p class="mt-1 text-xl font-medium text-surface-950 dark:text-surface-0">{{ formatCurrency(totalIncomes) }}</p>
           </div>
         </div>
         <div class="flex-1 flex gap-3 min-w-44">
@@ -39,7 +39,8 @@
 import { ref } from 'vue'
 
 defineProps({
-  totalExpense: { type: Number, default: 0 }
+  totalExpense: { type: Number, default: 0 },
+  totalIncomes: { type: Number, default: 0 }
 })
 
 const formatCurrency = (value) => {
