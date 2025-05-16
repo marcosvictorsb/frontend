@@ -103,20 +103,46 @@
           <p class="text-primary-contrast text-sm font-medium mt-2">Robert Jonas</p>
         </div>
       </div><button
-        class="absolute bottom-0 right-0 flex items-center gap-2 pb-1 pt-2 pl-4 pr-6 text-surface-0 bg-[rgba(255,255,255,0.12)] rounded-tl-3xl border-[rgba(255,255,255,0.32)] border-t border-l backdrop-blur-sm hover:bg-white/20 transition-all"><i
-          class="pi pi-plus !text-xs"></i><span class="flex-1 text-sm">Adicionar Banco</span></button>
+        class="absolute bottom-0 right-0 flex items-center gap-2 pb-1 pt-2 pl-4 pr-6 text-surface-0 bg-[rgba(255,255,255,0.12)] rounded-tl-3xl border-[rgba(255,255,255,0.32)] border-t border-l backdrop-blur-sm hover:bg-white/20 transition-all"
+        @click="openModalToAddBank"><i class="pi pi-plus !text-xs"></i><span class="flex-1 text-sm">Adicionar
+          Banco</span></button>
     </div>
     <div class="flex-1 flex flex-col gap-4">
       <div class="inline-flex items-center justify-between gap-6"><span class="text-surface-500 dark:text-white/64">Seu
-          balanço bancario</span><span
-          class="text-right text-lg font-medium text-surface-950 dark:text-surface-0">$72,842.00</span></div>
+          balanço bancario</span><span class="text-right text-lg font-medium text-surface-950 dark:text-surface-0">
+          {{ formatCurrency(totalAmount) }}</span></div>
 
     </div>
   </div>
+
+  <ModalAddBank :visible="visibleModalAddBank" @close:modal="closeModalAddBank" @save:bank="saveBank" />
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import ModalAddBank from './ModalAddBank.vue'
+import { ref, defineEmits } from 'vue'
+import { formatCurrency } from '@/shared/Utils'
 
+defineProps({
+  totalAmount: { type: Number, default: 0 }
+})
+
+const emits = defineEmits(['save:bank'])
+
+const visibleModalAddBank = ref(false)
+
+const openModalToAddBank = () => {
+  console.log('adicionar banco')
+  visibleModalAddBank.value = true
+}
+
+const closeModalAddBank = () => {
+  visibleModalAddBank.value = false
+}
+
+const saveBank = async ({ nameBank, amount }) => {
+  emits('save:bank', { name: nameBank, amount: amount * 100 });
+  closeModalAddBank();
+}
 
 </script>

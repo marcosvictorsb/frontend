@@ -20,8 +20,8 @@
         @save:transaction="saveTransaction" @edit:transaction="editTransaction" />
     </div>
     <div class="md:col-start-9 md:col-end-13">
-      <ResumeBank />
-      <ListBank />
+      <ResumeBank :totalAmount="totalAmountBank" @save:bank="saveBank" />
+      <ListBank :banks="banks" />
     </div>
   </div>
 
@@ -31,6 +31,7 @@
 import Loading from '@/components/Loading/Loading.vue'
 import ExpensesService from '@/service/Expenses'
 import IncomesService from '@/service/Incomes'
+import BanksService from '@/service/Banks'
 import { useToast } from 'primevue/usetoast'
 import { ref } from 'vue'
 import TableTransactions from './TableTransactions.vue'
@@ -44,6 +45,8 @@ const loading = ref(false)
 const toast = useToast()
 const totalExpense = ref(0)
 const totalIncomes = ref(0)
+const banks = ref([]);
+const totalAmountBank = ref(0)
 
 
 const currentDate = () => {
@@ -157,15 +160,40 @@ const editTransaction = async (transaction) => {
   }
 }
 
+const getBanks = async () => {
+  const { status, response } = await BanksService.getBanks();
+  return response ?? []
+}
+
+const saveBank = async ({ name, amount }) => {
+  await BanksService.createBank({ name, amount });
+  banks.value = await getBanks();
+  totalAmountBank.value = banks.value.reduce((accumulator, bank) => accumulator + bank.amount, 0)
+}
+
+
 
 const init = async () => {
-  loading.value = true
-  const incomes = await getIncomes();
-  const expenses = await getExpenses();
-  transactions.value = [...incomes, ...expenses];
+  try {
+    loading.value = true;
+    const incomes = await getIncomes();
+    const expenses = await getExpenses();
+    const totalExpenseResult = await getTotalExpense();
+    const totalIncomesResult = await getTotalIncomes();
+    banks.value = await getBanks();
 
-  totalExpense.value = await getTotalExpense();
-  totalIncomes.value = await getTotalIncomes();
+    totalAmountBank.value = banks.value.reduce((accumulator, bank) => accumulator + bank.amount, 0)
+
+    transactions.value = [...incomes, ...expenses];
+    totalExpense.value = totalExpenseResult;
+    totalIncomes.value = totalIncomesResult;
+
+    loading.value = false;
+
+
+  } catch (error) {
+    console.log('Error ao buscar os dados')
+  }
 
   loading.value = false
 }

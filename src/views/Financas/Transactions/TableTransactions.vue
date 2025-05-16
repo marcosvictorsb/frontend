@@ -179,6 +179,7 @@ const emit = defineEmits([
   'save:transaction',
   'open:modalTransaction',
   'update:month',
+  'edit:transaction'
 ])
 
 const formatCurrency = (value) => {
