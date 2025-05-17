@@ -2,21 +2,10 @@
   <ConfirmDialog :pt="{ content: { style: { fontSize: '18px' } } }" />
   <Loading v-if="loading" />
   <Toast />
-  <!-- <div class="grid grid-cols-12 gap-2">
-    <div class="col-start-1 col-end-9">
-      <Resume :totalExpense="totalExpense" :totalIncomes="totalIncomes" />
-      <TableTransactions :transactions="transactions" @delete:transaction="deleteTransaction"
-        @save:transaction="saveTransaction" @edit:transaction="editTransaction" />
-    </div>
-    <div class="col-start-9 col-end-13">
-      <ResumeBank />
-      <ListBank />
-    </div>
-  </div> -->
   <div class="grid grid-cols-1 md:grid-cols-12 gap-2">
     <div class="md:col-start-1 md:col-end-9">
       <Resume :totalExpense="totalExpense" :totalIncomes="totalIncomes" />
-      <TableTransactions :transactions="transactions" @delete:transaction="deleteTransaction"
+      <TableTransactions :transactions="transactions" :banks="banks" @delete:transaction="deleteTransaction"
         @save:transaction="saveTransaction" @edit:transaction="editTransaction" />
     </div>
     <div class="md:col-start-9 md:col-end-13">
@@ -28,17 +17,16 @@
 
 </template>
 <script setup>
-import Loading from '@/components/Loading/Loading.vue'
-import ExpensesService from '@/service/Expenses'
-import IncomesService from '@/service/Incomes'
-import BanksService from '@/service/Banks'
-import { useToast } from 'primevue/usetoast'
-import { ref } from 'vue'
-import TableTransactions from './TableTransactions.vue'
-import Resume from './Resume.vue'
-import ResumeBank from './ResumeBank.vue'
-import ListBank from './ListBanks.vue'
-import ListBanksCustom from './ListBanksCustom.vue'
+import Loading from '@/components/Loading/Loading.vue';
+import ExpensesService from '@/service/Expenses';
+import IncomesService from '@/service/Incomes';
+import BanksService from '@/service/Banks';
+import { useToast } from 'primevue/usetoast';
+import { ref } from 'vue';
+import TableTransactions from './TableTransactions.vue';
+import Resume from './Resume.vue';
+import ResumeBank from './ResumeBank.vue';
+import ListBank from './ListBanks.vue';
 
 const transactions = ref([])
 const loading = ref(false)
@@ -59,46 +47,25 @@ const currentDate = () => {
 // metodos api expense
 
 const getTotalExpense = async () => {
-  try {
-    const { status, response } = await ExpensesService.getTotalExpenses()
-    return response.total_expense
-  } catch (error) {
-    console.error('Error getting transactions', err)
-    return
-  }
+  const { status, response } = await ExpensesService.getTotalExpenses()
+  return response.total_expense
 }
 
 const getTotalIncomes = async () => {
-  try {
-    const { status, response } = await IncomesService.getTotalIncomes()
-    return response.total_income
-  } catch (error) {
-    console.error('Error getting transactions', err)
-    return
-  }
+  const { status, response } = await IncomesService.getTotalIncomes()
+  return response.total_income
 }
 
 const getExpenses = async () => {
-  try {
-    const { year, month } = currentDate()
-    const { status, response } = await ExpensesService.getExpenses({ year, month })
-    return response ?? []
-
-  } catch (err) {
-    console.error('Error getting transactions', err)
-    return
-  }
+  const { year, month } = currentDate()
+  const { status, response } = await ExpensesService.getExpenses({ year, month })
+  return response ?? []
 }
 
 const getIncomes = async () => {
-  try {
-    const { year, month } = currentDate()
-    const { status, response } = await IncomesService.getIncomes({ year, month })
-    return response ?? []
-  } catch (err) {
-    console.error('Error getting transactions', err)
-    return
-  }
+  const { year, month } = currentDate()
+  const { status, response } = await IncomesService.getIncomes({ year, month })
+  return response ?? []
 }
 
 const deleteTransaction = async ({ id, isIncome }) => {
@@ -116,14 +83,16 @@ const deleteTransaction = async ({ id, isIncome }) => {
   }
 }
 
-const saveTransaction = async ({ transaction, is_recurring, recurring_count, status, isIncome }) => {
+const saveTransaction = async ({ transaction, is_recurring, recurring_count, status, isIncome, id_bank }) => {
   try {
+
     if (isIncome) {
       await IncomesService.createIncome({
         ...transaction,
         status,
         is_recurring,
         recurring_count,
+        id_bank
       });
     } else {
       await ExpensesService.createExpense({
@@ -131,6 +100,7 @@ const saveTransaction = async ({ transaction, is_recurring, recurring_count, sta
         status,
         is_recurring,
         recurring_count,
+        id_bank
       });
     }
 
@@ -145,13 +115,11 @@ const saveTransaction = async ({ transaction, is_recurring, recurring_count, sta
 
 const editTransaction = async (transaction) => {
   try {
-
     if (transaction.isIncome) {
       await IncomesService.updateIncome(transaction);
     } else {
       await ExpensesService.updateExpense(transaction);
     }
-
     toast.add({ severity: 'success', summary: 'Successful', detail: 'Registro editado', life: 3000 });
     init()
   } catch (error) {
@@ -192,6 +160,8 @@ const init = async () => {
 
 
   } catch (error) {
+    loading.value = false;
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Error interno', life: 3000 });
     console.log('Error ao buscar os dados')
   }
 

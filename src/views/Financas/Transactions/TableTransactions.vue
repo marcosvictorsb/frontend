@@ -17,7 +17,8 @@
       :rows="10" :filters="filters"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
       :rowsPerPageOptions="[5, 10, 25]"
-      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros" :size="'small'">
+      currentPageReportTemplate=" Mostrando {first} a {last} de {totalRecords} registros" :size="'small'">
+
       <template #header>
         <div class="flex flex-wrap gap-2 items-center justify-between">
           <h4 class="m-0">Gerencias os Gastos</h4>
@@ -28,6 +29,10 @@
             <InputText v-model="filters['global'].value" placeholder="Procurar..." />
           </IconField>
         </div>
+      </template>
+
+      <template #empty>
+        Nenhuma despesa ou receita cadastrada
       </template>
 
       <!-- <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column> -->
@@ -80,9 +85,6 @@
             placeholder="Selecione o status" class="w-full md:w-56">
             <template #value="slotProps">
               <div v-if="slotProps.value" class="flex items-center">
-                <img :alt="slotProps.value.label"
-                  src="https://primefaces.org/cdn/primevue/images/flag/flag_placeholder.png"
-                  :class="`mr-2 flag flag-${slotProps.value.code}`" style="width: 18px" />
                 <div>{{ slotProps.value.name }}</div>
               </div>
               <span v-else>
@@ -91,14 +93,44 @@
             </template>
             <template #option="slotProps">
               <div class="flex items-center">
-                <img :alt="slotProps.option.label"
-                  src="https://primefaces.org/cdn/primevue/images/flag/flag_placeholder.png"
-                  :class="`mr-2 flag flag-${slotProps.option.code}`" style="width: 18px" />
+                <div class="mr-1">
+                  <span>
+                    <i :class="['pi', slotProps.option.icone || 'pi-palette']"></i>
+                  </span>
+                </div>
                 <div>{{ slotProps.option.name }}</div>
               </div>
             </template>
           </Select>
         </div>
+
+        <!--  -->
+        <div class="col-span-12">
+          <label for="status" class="block font-bold mb-3">Banco</label>
+          <Select v-model="selectedBank" :options="banks" optionLabel="name" placeholder="Selecione o banco"
+            class="w-full" fluid>
+            <template #value="slotProps">
+              <div v-if="slotProps.value" class="flex items-center">
+                <div>{{ slotProps.value.name }}</div>
+              </div>
+              <span v-else>
+                {{ slotProps.placeholder }}
+              </span>
+            </template>
+            <template #option="slotProps">
+              <div class="flex items-center">
+                <i class="text-2xl mb-4 text-surface-500 dark:text-surface-400 pi pi-calendar-clock"></i>
+                <div>{{ slotProps.option.name }}</div>
+              </div>
+            </template>
+          </Select>
+        </div>
+
+        <!-- <div class="col-span-6">
+          <label for="amount" class="block font-bold mb-3">Valor</label>
+          <InputNumber id="amount" v-model="transaction.amount" mode="currency" currency="BRL" locale="pt-BR" fluid
+            placeholder="Valor" />
+        </div> -->
 
         <div class="col-span-2" v-if="!isEdit">
           <label for="recorrent" class="block font-bold mb-3">Recorrencia</label>
@@ -132,23 +164,14 @@
       <Button label="Sim" icon="pi pi-check" @click="deleteTransaction" />
     </template>
   </Dialog>
-
-  <Dialog v-model:visible="deleteProductsDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
-    <div class="flex items-center gap-4">
-      <i class="pi pi-exclamation-triangle !text-3xl" />
-      <span v-if="product">Are you sure you want to delete the selected products?</span>
-    </div>
-    <template #footer>
-      <Button label="No" icon="pi pi-times" text @click="deleteProductsDialog = false" />
-      <Button label="Yes" icon="pi pi-check" text @click="deleteSelectedProducts" />
-    </template>
-  </Dialog>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
+import { formatCurrency } from '@/shared/Utils'
+import Banks from '@/service/Banks';
 
 const toast = useToast();
 const dt = ref();
@@ -169,9 +192,11 @@ const title = ref('');
 const recorrent = ref(0);
 const isEdit = ref(false);
 const isIncome = ref(false);
+const selectedBank = ref(null)
 
-defineProps({
+const props = defineProps({
   transactions: { type: Array, default: null },
+  banks: { type: Array, default: null }
 })
 
 const emit = defineEmits([
@@ -181,14 +206,6 @@ const emit = defineEmits([
   'update:month',
   'edit:transaction'
 ])
-
-const formatCurrency = (value) => {
-  if (value !== null && value !== undefined) {
-    const amount = value / 100;
-    return amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  }
-  return 'R$ 0,00';
-};
 
 const openNew = (isIncomeModal) => {
   transaction.value = {};
@@ -212,7 +229,8 @@ const saveTransaction = async () => {
     status: selectedStatus.value.name,
     is_recurring: recorrent.value > 0,
     recurring_count: recorrent.value,
-    isIncome
+    isIncome,
+    id_bank: selectedBank.value.id
   });
   submitted.value = false;
   transactionDialog.value = false;
@@ -227,6 +245,8 @@ const editTransaction = (editTransaction) => {
     name: editTransaction.status,
     code: editTransaction.status === 'pago' ? 'pg' : 'pend'
   };
+
+  selectedBank.value = props.banks.find((bank) => bank.id === transaction.value.id_bank);
 };
 
 const editedTransaction = () => {
@@ -236,6 +256,7 @@ const editedTransaction = () => {
     status: selectedStatus.value.name,
     amount: transaction.value.amount * 100,
     isIncome: transaction.value.type === 'receita',
+    id_bank: selectedBank.value.id
   });
   submitted.value = false;
   transactionDialog.value = false;
@@ -253,18 +274,6 @@ const deleteTransaction = async () => {
     isIncome: transaction.value.type === 'receita',
   });
   deleteTransactionDialog.value = false;
-};
-
-
-const confirmDeleteSelected = () => {
-  deleteProductsDialog.value = true;
-};
-
-const deleteSelectedProducts = () => {
-  products.value = products.value.filter(val => !selectedProducts.value.includes(val));
-  deleteProductsDialog.value = false;
-  selectedProducts.value = null;
-  toast.add({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
 };
 
 const getSeverityStatus = (status) => {
@@ -292,13 +301,13 @@ const getSeverityType = (status) => {
 const getOptionSelectedStatus = (isIncome) => {
   if (isIncome) {
     return [
-      { name: 'Recebido', code: 'recebido' },
-      { name: 'Aguardando Receber', code: 'aguardando receber' },
+      { name: 'Recebido', code: 'recebido', icone: 'pi-check' },
+      { name: 'Aguardando Receber', code: 'aguardando receber', icone: 'pi-clock' },
     ];
   } else {
     return [
-      { name: 'Pago', code: 'pago' },
-      { name: 'Pendente', code: 'pendente' },
+      { name: 'Pago', code: 'pago', icone: 'pi-money-bill' },
+      { name: 'Pendente', code: 'pendente', icone: 'pi-exclamation-triangle' },
     ];
   }
 }
