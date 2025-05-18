@@ -223,6 +223,19 @@ const hideDialog = () => {
 
 const saveTransaction = async () => {
   submitted.value = true;
+
+  if (isIncome.value) {
+    emit('save:transaction', {
+      transaction: transaction.value,
+      status: selectedStatus.value.name,
+      is_recurring: recorrent.value > 0,
+      recurring_count: recorrent.value,
+      isIncome: isIncome.value,
+      id_bank: selectedBank.value.id
+    });
+    transactionDialog.value = false;
+    return
+  }
   emit('save:transaction', {
     transaction: transaction.value,
     status: selectedStatus.value.name,
@@ -232,6 +245,7 @@ const saveTransaction = async () => {
     id_bank: selectedBank.value.id,
     date_payment: ajustDatePayment(date_payment.value)
   });
+
   submitted.value = false;
   transactionDialog.value = false;
 };
@@ -255,8 +269,6 @@ const ajustDatePayment = (date) => {
     hour12: false,
     timeZone: 'America/Sao_Paulo'
   };
-
-  console.log(dataOriginal);
 
   const dataFormatada = new Intl.DateTimeFormat('pt-BR', options)
     .format(dataOriginal)
