@@ -211,7 +211,7 @@ const openNew = (isIncomeModal) => {
   transaction.value = {};
   submitted.value = false;
   transactionDialog.value = true;
-  title.value = 'Novo Registro';
+  title.value = isIncomeModal ? 'Cria Receita' : 'Criar Despesa';
   selectedStatus.value = null
   isEdit.value = false;
   isIncome.value = isIncomeModal;
@@ -229,7 +229,7 @@ const saveTransaction = async () => {
     status: selectedStatus.value.name,
     is_recurring: recorrent.value > 0,
     recurring_count: recorrent.value,
-    isIncome,
+    isIncome: isIncome.value,
     id_bank: selectedBank.value.id
   });
   submitted.value = false;
