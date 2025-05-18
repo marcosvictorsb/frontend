@@ -186,6 +186,7 @@ const isEdit = ref(false);
 const isIncome = ref(false);
 const selectedBank = ref(null)
 const date_payment = ref(null)
+// comentario avulso
 
 const props = defineProps({
   transactions: { type: Array, default: null },
