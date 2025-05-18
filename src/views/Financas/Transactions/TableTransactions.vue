@@ -72,6 +72,27 @@
         <small v-if="submitted && !transaction.description" class="text-red-500">Descrição é obrigatório.</small>
       </div>
 
+      <div class="col-span-12">
+        <label for="status" class="block font-bold mb-3">Banco</label>
+        <Select v-model="selectedBank" :options="banks" optionLabel="name" placeholder="Selecione o banco"
+          class="w-full" fluid>
+          <template #value="slotProps">
+            <div v-if="slotProps.value" class="flex items-center">
+              <div>{{ slotProps.value.name }}</div>
+            </div>
+            <span v-else>
+              {{ slotProps.placeholder }}
+            </span>
+          </template>
+          <template #option="slotProps">
+            <div class="flex items-center">
+              <i class="text-2xl mb-4 text-surface-500 dark:text-surface-400 pi pi-calendar-clock"></i>
+              <div>{{ slotProps.option.name }}</div>
+            </div>
+          </template>
+        </Select>
+      </div>
+
       <div class="grid grid-cols-12 gap-4">
         <div class="col-span-6">
           <label for="amount" class="block font-bold mb-3">Valor</label>
@@ -104,33 +125,10 @@
           </Select>
         </div>
 
-        <!--  -->
-        <div class="col-span-12">
-          <label for="status" class="block font-bold mb-3">Banco</label>
-          <Select v-model="selectedBank" :options="banks" optionLabel="name" placeholder="Selecione o banco"
-            class="w-full" fluid>
-            <template #value="slotProps">
-              <div v-if="slotProps.value" class="flex items-center">
-                <div>{{ slotProps.value.name }}</div>
-              </div>
-              <span v-else>
-                {{ slotProps.placeholder }}
-              </span>
-            </template>
-            <template #option="slotProps">
-              <div class="flex items-center">
-                <i class="text-2xl mb-4 text-surface-500 dark:text-surface-400 pi pi-calendar-clock"></i>
-                <div>{{ slotProps.option.name }}</div>
-              </div>
-            </template>
-          </Select>
+        <div class="col-span-12" v-if="selectedStatus && selectedStatus.name === 'Pago'">
+          <label for="status" class="block font-bold mb-3">Data Pagamento</label>
+          <DatePicker name="date_payment" fluid v-model="date_payment" dateFormat="dd/mm/yy" />
         </div>
-
-        <!-- <div class="col-span-6">
-          <label for="amount" class="block font-bold mb-3">Valor</label>
-          <InputNumber id="amount" v-model="transaction.amount" mode="currency" currency="BRL" locale="pt-BR" fluid
-            placeholder="Valor" />
-        </div> -->
 
         <div class="col-span-2" v-if="!isEdit">
           <label for="recorrent" class="block font-bold mb-3">Recorrencia</label>
@@ -169,17 +167,11 @@
 <script setup>
 import { ref } from 'vue';
 import { FilterMatchMode } from '@primevue/core/api';
-import { useToast } from 'primevue/usetoast';
 import { formatCurrency } from '@/shared/Utils'
-import Banks from '@/service/Banks';
 
-const toast = useToast();
 const dt = ref();
-const products = ref();
 const transactionDialog = ref(false);
 const deleteTransactionDialog = ref(false);
-const deleteProductsDialog = ref(false);
-const product = ref({});
 const selectedTransactions = ref([]);
 const filters = ref({
   'global': { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -193,6 +185,8 @@ const recorrent = ref(0);
 const isEdit = ref(false);
 const isIncome = ref(false);
 const selectedBank = ref(null)
+const date_payment = ref(null)
+// comentario avulso
 
 const props = defineProps({
   transactions: { type: Array, default: null },
@@ -212,13 +206,18 @@ const openNew = (isIncomeModal) => {
   submitted.value = false;
   transactionDialog.value = true;
   title.value = isIncomeModal ? 'Cria Receita' : 'Criar Despesa';
-  selectedStatus.value = null
+  selectedStatus.value = null;
+  date_payment.value = null;
+  selectedBank.value = null;
   isEdit.value = false;
   isIncome.value = isIncomeModal;
 };
 
 const hideDialog = () => {
   transactionDialog.value = false;
+  selectedStatus.value = null;
+  date_payment.value = null;
+  selectedBank.value = null;
   submitted.value = false;
 };
 
@@ -230,11 +229,42 @@ const saveTransaction = async () => {
     is_recurring: recorrent.value > 0,
     recurring_count: recorrent.value,
     isIncome: isIncome.value,
-    id_bank: selectedBank.value.id
+    id_bank: selectedBank.value.id,
+    date_payment: ajustDatePayment(date_payment.value)
   });
   submitted.value = false;
   transactionDialog.value = false;
 };
+
+const ajustDatePayment = (date) => {
+  const dataOriginal = new Date(date);
+  console.log(dataOriginal)
+  const agora = new Date();
+
+  date.setHours(agora.getHours());
+  date.setMinutes(agora.getMinutes());
+  date.setSeconds(agora.getSeconds());
+
+  const options = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: 'America/Sao_Paulo'
+  };
+
+  console.log(dataOriginal);
+
+  const dataFormatada = new Intl.DateTimeFormat('pt-BR', options)
+    .format(dataOriginal)
+    .replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$2-$1')
+    .replace(',', '');
+
+  return dataFormatada;
+}
 
 const editTransaction = (editTransaction) => {
   title.value = 'Editar Registro';
@@ -245,7 +275,7 @@ const editTransaction = (editTransaction) => {
     name: editTransaction.status,
     code: editTransaction.status === 'pago' ? 'pg' : 'pend'
   };
-
+  date_payment.value = selectedStatus.value.name === 'Pago' ? new Date(transaction.value.date_payment) : null;
   selectedBank.value = props.banks.find((bank) => bank.id === transaction.value.id_bank);
 };
 
@@ -256,7 +286,8 @@ const editedTransaction = () => {
     status: selectedStatus.value.name,
     amount: transaction.value.amount * 100,
     isIncome: transaction.value.type === 'receita',
-    id_bank: selectedBank.value.id
+    id_bank: selectedBank.value.id,
+    date_payment: ajustDatePayment(date_payment.value)
   });
   submitted.value = false;
   transactionDialog.value = false;

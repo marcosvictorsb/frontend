@@ -10,7 +10,7 @@
     </div>
     <div class="md:col-start-9 md:col-end-13">
       <ResumeBank :totalAmount="totalAmountBank" @save:bank="saveBank" />
-      <ListBank :banks="banks" />
+      <ListBank :banks="banks" open:modal-bank="" />
     </div>
   </div>
 
@@ -83,9 +83,8 @@ const deleteTransaction = async ({ id, isIncome }) => {
   }
 }
 
-const saveTransaction = async ({ transaction, is_recurring, recurring_count, status, isIncome, id_bank }) => {
+const saveTransaction = async ({ transaction, is_recurring, recurring_count, status, isIncome, id_bank, date_payment }) => {
   try {
-
     if (isIncome) {
       await IncomesService.createIncome({
         ...transaction,
@@ -100,11 +99,10 @@ const saveTransaction = async ({ transaction, is_recurring, recurring_count, sta
         status,
         is_recurring,
         recurring_count,
-        id_bank
+        id_bank,
+        date_payment
       });
     }
-
-
     toast.add({ severity: 'success', summary: 'Successful', detail: 'Registro salvo', life: 3000 });
     init()
   } catch (error) {
