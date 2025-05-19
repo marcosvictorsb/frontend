@@ -1,16 +1,11 @@
 <template>
   <div class="card mt-20">
     <div class="font-semibold text-xl mb-4">Gastos</div>
-    <Chart
-      type="bar"
-      :data="chartData"
-      :options="chartOptions"
-      class="h-[30rem]"
-    />
+    <Chart type="bar" :data="chartData" :options="chartOptions" class="h-[30rem]" />
   </div>
 </template>
 <script setup>
-import GraphService from '@/service/Graph'
+import GraphService from '@/service/Graphic'
 import { ref } from 'vue'
 
 const chartData = ref()

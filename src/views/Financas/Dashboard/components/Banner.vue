@@ -1,14 +1,11 @@
 <template>
   <div class="relative overflow-hidden col-span-12 px-8 py-6 rounded-2xl banner-background">
     <div>
-      <div class="text-2xl text-white">Total Balance</div>
+      <div class="text-2xl text-white">Balanço Anual {{ new Date().getFullYear() }}</div>
       <div class="mt-4 flex items-center gap-2">
-        <div class="text-4xl text-white font-semibold">$673,742.90</div>
-        <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">17%</span>
-      </div>
-      <div class="mt-2 flex items-center gap-2">
-        <span class="text-white/70">Compared to last month</span>
-        <span class="font-medium text-green-400">$148,157.94</span>
+        <div class="text-4xl text-white font-semibold">{{ formatCurrency(balanceYear) }}</div>
+        <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{{ percentual
+          }}%</span>
       </div>
     </div>
     <div class="hidden lg:block absolute -top-2 -bottom-0 right-0 z-10">
@@ -178,6 +175,14 @@
 </template>
 
 <script setup>
+import { defineProps } from 'vue'
+import { formatCurrency } from '../../../../shared/Utils'
+
+
+defineProps({
+  balanceYear: { type: Number, default: 0 },
+  percentual: { type: String, default: '0' }
+})
 
 </script>
 
