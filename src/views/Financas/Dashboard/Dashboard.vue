@@ -20,6 +20,8 @@ const getBalanceYear = async () => {
   percentual.value = response.percetual;
 }
 
+
+
 const init = async () => {
   await getBalanceYear();
 }

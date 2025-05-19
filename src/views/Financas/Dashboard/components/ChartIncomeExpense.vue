@@ -1,11 +1,16 @@
 <template>
-  <div class="card mt-20">
-    <div class="font-semibold text-xl mb-4">Gastos</div>
+  <div class="card  col-span-12 flex flex-col p-6 border border-surface rounded-2xl overflow-hidden">
+    <div class="flex items-start justify-between gap-2 mb-4">
+      <div>
+        <h3 class="label-medium">Gastos Anual</h3>
+      </div>
+
+    </div>
     <Chart type="bar" :data="chartData" :options="chartOptions" class="h-[30rem]" />
   </div>
 </template>
 <script setup>
-import GraphService from '@/service/Graphic'
+import GraphicService from '@/service/Graphic';
 import { ref } from 'vue'
 
 const chartData = ref()
@@ -89,7 +94,7 @@ const setChartOptions = () => {
           color: textColorSecondary,
         },
         grid: {
-          offset: false,
+          offset: true,
         },
       },
       y: {
@@ -98,7 +103,7 @@ const setChartOptions = () => {
           color: textColorSecondary,
         },
         grid: {
-          offset: false,
+          offset: true,
         },
       },
     },
@@ -106,10 +111,14 @@ const setChartOptions = () => {
   }
 }
 
+const getMonthlySummary = async () => {
+  const { response } = await GraphicService.getMonthlySummary()
+  return response;
+}
+
 const init = async () => {
   try {
-    // const { response } = await GraphService.getStackedBar()
-    graphStackedBar.value = []
+    graphStackedBar.value = await getMonthlySummary();
     chartData.value = setChartData(graphStackedBar.value)
     chartOptions.value = setChartOptions()
   } catch (e) {

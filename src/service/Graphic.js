@@ -17,6 +17,9 @@ class GraphService {
   async getBalanceYear() {
     return await this.api.get(`/graphic/balance-year`, this.config)
   }
+  async getMonthlySummary() {
+    return await this.api.get(`/graphic/monthly-summary`, this.config)
+  }
 }
 
 export default new GraphService()
