@@ -25,7 +25,7 @@ const router = createRouter({
           path: '/financas',
           name: 'financas',
           meta: { title: 'Finanças Pessoais' },
-          component: () => import('@/views/Financas/Dashboard.vue'),
+          component: () => import('@/views/Financas/Dashboard/Dashboard.vue'),
           beforeEnter: authGuard,
         },
         {
