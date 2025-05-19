@@ -43,6 +43,11 @@
         </template>
       </Column>
       <Column field="reference_month" header="Mês de Referência" sortable style="min-width: 8rem"></Column>
+      <Column field="date_payment" header="Data do Pagamento" sortable style="min-width: 8rem">
+        <template #body="slotProps">
+          {{ ajustDateToColumn(slotProps.data.date_payment) }}
+        </template>
+      </Column>
       <Column field="type" header="Tipo" sortable style="min-width: 8rem">
         <template #body="slotProps">
           <Tag :value="slotProps.data.type" :severity="getSeverityType(slotProps.data)" />
@@ -211,6 +216,7 @@ const openNew = (isIncomeModal) => {
   selectedBank.value = null;
   isEdit.value = false;
   isIncome.value = isIncomeModal;
+  recorrent.value = 0;
 };
 
 const hideDialog = () => {
@@ -223,8 +229,7 @@ const hideDialog = () => {
 
 const saveTransaction = async () => {
   submitted.value = true;
-
-  if (isIncome.value) {
+  if (isIncome.value || selectedStatus.value.name === 'Pendente') {
     emit('save:transaction', {
       transaction: transaction.value,
       status: selectedStatus.value.name,
@@ -276,6 +281,20 @@ const ajustDatePayment = (date) => {
     .replace(',', '');
 
   return dataFormatada;
+}
+
+const ajustDateToColumn = (date) => {
+  if (typeof date === 'undefined' || date === null) {
+    return ''
+  }
+
+  const dataOriginal = new Date(date);
+  const dia = String(dataOriginal.getUTCDate()).padStart(2, '0');
+  const mes = String(dataOriginal.getUTCMonth() + 1).padStart(2, '0'); // Mês é 0-based
+  const ano = dataOriginal.getUTCFullYear();
+
+  const dataFormatada = `${dia}/${mes}/${ano}`;
+  return dataFormatada
 }
 
 const editTransaction = (editTransaction) => {

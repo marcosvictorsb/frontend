@@ -16,7 +16,8 @@
           <div class="w-1.5 rounded-full bg-rose-500"></div>
           <div>
             <h5 class="text-surface-500 dark:text-white/72">Despesa pagas</h5>
-            <p class="mt-1 text-xl font-medium text-surface-950 dark:text-surface-0">{{ formatCurrency(totalExpense) }}
+            <p class="mt-1 text-xl font-medium text-surface-950 dark:text-surface-0">{{ formatCurrency(totalExpensePay)
+              }}
             </p>
           </div>
         </div>
@@ -25,7 +26,8 @@
           <div class="w-1.5 rounded-full bg-rose-500"></div>
           <div>
             <h5 class="text-surface-500 dark:text-white/72">Despesa a pagar</h5>
-            <p class="mt-1 text-xl font-medium text-surface-950 dark:text-surface-0">{{ formatCurrency(totalExpense) }}
+            <p class="mt-1 text-xl font-medium text-surface-950 dark:text-surface-0">{{
+              formatCurrency(totalExpenseToPay) }}
             </p>
           </div>
         </div>
@@ -46,7 +48,8 @@
 import { ref } from 'vue'
 
 defineProps({
-  totalExpense: { type: Number, default: 0 },
+  totalExpenseToPay: { type: Number, default: 0 },
+  totalExpensePay: { type: Number, default: 0 },
   totalIncomes: { type: Number, default: 0 }
 })
 

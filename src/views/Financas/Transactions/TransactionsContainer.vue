@@ -4,7 +4,7 @@
   <Toast />
   <div class="grid grid-cols-1 md:grid-cols-12 gap-2">
     <div class="md:col-start-1 md:col-end-9">
-      <Resume :totalExpense="totalExpense" :totalIncomes="totalIncomes" />
+      <Resume :totalExpenseToPay="totalExpenseToPay" :totalExpensePay="totalExpensePay" :totalIncomes="totalIncomes" />
       <TableTransactions :transactions="transactions" :banks="banks" @delete:transaction="deleteTransaction"
         @save:transaction="saveTransaction" @edit:transaction="editTransaction" />
     </div>
@@ -31,8 +31,9 @@ import ListBank from './ListBanks.vue';
 const transactions = ref([])
 const loading = ref(false)
 const toast = useToast()
-const totalExpense = ref(0)
 const totalIncomes = ref(0)
+const totalExpenseToPay = ref(0)
+const totalExpensePay = ref(0)
 const banks = ref([]);
 const totalAmountBank = ref(0)
 
@@ -48,7 +49,10 @@ const currentDate = () => {
 
 const getTotalExpense = async () => {
   const { status, response } = await ExpensesService.getTotalExpenses()
-  return response.total_expense
+  return {
+    total_expense_pay: response.total_expense_pay,
+    total_expense_to_pay: response.total_expense_to_pay
+  }
 }
 
 const getTotalIncomes = async () => {
@@ -151,7 +155,8 @@ const init = async () => {
     totalAmountBank.value = banks.value.reduce((accumulator, bank) => accumulator + bank.amount, 0)
 
     transactions.value = [...incomes, ...expenses];
-    totalExpense.value = totalExpenseResult;
+    totalExpenseToPay.value = totalExpenseResult.total_expense_to_pay;
+    totalExpensePay.value = totalExpenseResult.total_expense_pay;
     totalIncomes.value = totalIncomesResult;
 
     loading.value = false;
