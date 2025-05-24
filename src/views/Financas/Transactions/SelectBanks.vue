@@ -24,7 +24,7 @@
       <i class="pi pi-map" />
     </template>
     <template #header>
-      <div class="font-medium p-3">Bancos Disponiveis</div>
+      <div class="font-medium p-3">Bancos Disponiveissss</div>
     </template>
     <template #footer>
       <div class="p-3">

@@ -51,7 +51,7 @@
 </template>
 <script setup>
 import { defineEmits, ref } from 'vue'
-import banks from '../../../service/bancos.json'
+import banks from '../../../../../service/bancos.json'
 
 defineProps({
   visible: { type: Boolean, default: false }

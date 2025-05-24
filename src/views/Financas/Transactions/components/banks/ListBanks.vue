@@ -14,7 +14,7 @@
       tabindex="0" v-for="(bank, index) in banks" @click="clickBank(bank)">
       <div class="flex items-center">
         <div class="relative md:mr-4 flex-shrink-0">
-          <img src="../../../img/banco-icone.jpg" alt="user" class="w-12 h-12 rounded-full shadow-lg">
+          <img src="../../../../../img/banco-icone.jpg" alt="user" class="w-12 h-12 rounded-full shadow-lg">
         </div>
         <div class="flex-col hidden md:flex">
           <span class="text-surface-900 dark:text-surface-0 font-semibold block">
@@ -23,7 +23,7 @@
       </div>
       <span class="text-surface-700 dark:text-surface-100 font-semibold ml-auto hidden md:inline">{{
         formatCurrency(bank.amount)
-      }}</span>
+        }}</span>
     </div>
   </div>
 </template>
