@@ -78,6 +78,27 @@
       </div>
 
       <div class="col-span-12">
+        <label for="status" class="block font-bold mb-3">Categoria</label>
+        <Select v-model="selectedCategory" :options="categories" optionLabel="name" placeholder="Selecione a categoria"
+          class="w-full" fluid>
+          <template #value="slotProps">
+            <div v-if="slotProps.value" class="flex items-center">
+              <div>{{ slotProps.value.name }}</div>
+            </div>
+            <span v-else>
+              {{ slotProps.placeholder }}
+            </span>
+          </template>
+          <template #option="slotProps">
+            <div class="flex items-center">
+              <i class="text-2xl mb-4 text-surface-500 dark:text-surface-400 pi pi-calendar-clock"></i>
+              <div>{{ slotProps.option.name }}</div>
+            </div>
+          </template>
+        </Select>
+      </div>
+
+      <div class="col-span-12">
         <label for="status" class="block font-bold mb-3">Banco</label>
         <Select v-model="selectedBank" :options="banks" optionLabel="name" placeholder="Selecione o banco"
           class="w-full" fluid>
@@ -104,6 +125,8 @@
           <InputNumber id="amount" v-model="transaction.amount" mode="currency" currency="BRL" locale="pt-BR" fluid
             placeholder="Valor" />
         </div>
+
+
 
         <div class="col-span-6">
           <label for="status" class="block font-bold mb-3">Status</label>
@@ -190,6 +213,30 @@ const recorrent = ref(0);
 const isEdit = ref(false);
 const isIncome = ref(false);
 const selectedBank = ref(null)
+const selectedCategory = ref(null)
+const categories = ref([
+  { name: 'Alimentação', code: 'alimentacao' },
+  { name: 'Transporte', code: 'transporte' },
+  { name: 'Saúde', code: 'saude' },
+  { name: 'Educação', code: 'educacao' },
+  { name: 'Lazer', code: 'lazer' },
+  { name: 'Moradia', code: 'moradia' },
+  { name: 'Vestuário', code: 'vestuario' },
+  { name: 'Contas Domésticas', code: 'contas' },
+  { name: 'Assinaturas', code: 'assinaturas' },
+  { name: 'Cuidados Pessoais', code: 'cuidados' },
+  { name: 'Presentes', code: 'presentes' },
+  { name: 'Viagens', code: 'viagens' },
+  { name: 'Investimentos', code: 'investimentos' },
+  { name: 'Dívidas', code: 'dividas' },
+  { name: 'Seguros', code: 'seguros' },
+  { name: 'Animais de Estimação', code: 'pets' },
+  { name: 'Impostos', code: 'impostos' },
+  { name: 'Doações', code: 'doacoes' },
+  { name: 'Tecnologia', code: 'tecnologia' },
+  { name: 'Manutenção', code: 'manutencao' },
+  { name: 'Outros', code: 'outros' }
+])
 const date_payment = ref(null)
 // comentario avulso
 

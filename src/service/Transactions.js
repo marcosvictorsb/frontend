@@ -16,7 +16,7 @@ class TransactionService {
 
   async create(transaction) {
     transaction.id_user = user.user.id
-    return await this.api.post(`/transactions`, transaction, this.config)
+    return await this.api.post(`/transactions`, [transaction], this.config);
   }
 
   async getTransactions(date) {

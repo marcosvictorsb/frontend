@@ -15,7 +15,7 @@ class ExpensesService {
   }
 
   async createExpense(transaction) {
-    return await this.api.post(`/expenses`, transaction, this.config)
+    return await this.api.post(`/expenses`, [transaction], this.config);
   }
 
   async getExpenses(date) {
