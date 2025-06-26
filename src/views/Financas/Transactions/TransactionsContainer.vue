@@ -4,6 +4,7 @@
   <Toast />
   <div class="grid grid-cols-1 md:grid-cols-12 gap-2">
     <div class="md:col-start-1 md:col-end-9">
+      <MonthFilter @month-changed="onMonthChanged" />
       <Resume :totalExpenseToPay="totalExpenseToPay" :totalExpensePay="totalExpensePay" :totalIncomes="totalIncomes" />
       <TableTransactions :transactions="transactions" :banks="banks" @delete:transaction="deleteTransaction"
         @save:transaction="saveTransaction" @edit:transaction="editTransaction" />
@@ -23,6 +24,7 @@ import IncomesService from '@/service/Incomes';
 import BanksService from '@/service/Banks';
 import { useToast } from 'primevue/usetoast';
 import { ref } from 'vue';
+import MonthFilter from './MonthFilter.vue';
 import TableTransactions from './TableTransactions.vue';
 import Resume from './Resume.vue';
 import ResumeBank from './ResumeBank.vue';
@@ -36,6 +38,7 @@ const totalExpenseToPay = ref(0)
 const totalExpensePay = ref(0)
 const banks = ref([]);
 const totalAmountBank = ref(0)
+const selectedMonth = ref('')
 
 
 const currentDate = () => {
@@ -48,7 +51,17 @@ const currentDate = () => {
 // metodos api expense
 
 const getTotalExpense = async () => {
-  const { status, response } = await ExpensesService.getTotalExpenses()
+  let year, month;
+
+  if (selectedMonth.value) {
+    [month, year] = selectedMonth.value.split('/');
+  } else {
+    const currentDateResult = currentDate();
+    year = currentDateResult.year;
+    month = currentDateResult.month;
+  }
+
+  const { status, response } = await ExpensesService.getTotalExpenses({ year: parseInt(year), month })
   return {
     total_expense_pay: response.total_expense_pay,
     total_expense_to_pay: response.total_expense_to_pay
@@ -56,19 +69,47 @@ const getTotalExpense = async () => {
 }
 
 const getTotalIncomes = async () => {
-  const { status, response } = await IncomesService.getTotalIncomes()
+  let year, month;
+
+  if (selectedMonth.value) {
+    [month, year] = selectedMonth.value.split('/');
+  } else {
+    const currentDateResult = currentDate();
+    year = currentDateResult.year;
+    month = currentDateResult.month;
+  }
+
+  const { status, response } = await IncomesService.getTotalIncomes({ year: parseInt(year), month })
   return response.total_income
 }
 
 const getExpenses = async () => {
-  const { year, month } = currentDate()
-  const { status, response } = await ExpensesService.getExpenses({ year, month })
+  let year, month;
+
+  if (selectedMonth.value) {
+    [month, year] = selectedMonth.value.split('/');
+  } else {
+    const currentDateResult = currentDate();
+    year = currentDateResult.year;
+    month = currentDateResult.month;
+  }
+
+  const { status, response } = await ExpensesService.getExpenses({ year: parseInt(year), month })
   return response ?? []
 }
 
 const getIncomes = async () => {
-  const { year, month } = currentDate()
-  const { status, response } = await IncomesService.getIncomes({ year, month })
+  let year, month;
+
+  if (selectedMonth.value) {
+    [month, year] = selectedMonth.value.split('/');
+  } else {
+    const currentDateResult = currentDate();
+    year = currentDateResult.year;
+    month = currentDateResult.month;
+  }
+
+  const { status, response } = await IncomesService.getIncomes({ year: parseInt(year), month })
   return response ?? []
 }
 
@@ -141,7 +182,10 @@ const saveBank = async ({ name, amount }) => {
   totalAmountBank.value = banks.value.reduce((accumulator, bank) => accumulator + bank.amount, 0)
 }
 
-
+const onMonthChanged = (month) => {
+  selectedMonth.value = month;
+  init(); // Recarrega os dados para o mês selecionado
+}
 
 const init = async () => {
   try {
