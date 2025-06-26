@@ -1,7 +1,6 @@
-
 <template>
   <div class="financial-forecast-calendar">
-    <!-- Header do Calendário (alterado) -->
+    <!-- Header do Calendário -->
     <Card class="mb-4">
       <template #content>
         <div class="flex items-center justify-between">
@@ -18,15 +17,9 @@
               {{ formatMonthYear(currentMonth) }}
             </h2>
             <div class="text-sm text-surface-500 dark:text-white/72">
-              <span>Receita Total: {{ formatCurrency(forecastData?.totalIncome || 0) }}</span>
+              <span>Receita Total: {{ formatCurrency(forecastData?.incomeTotal || 0) }}</span>
               <span class="mx-2">•</span>
-              <span>Despesa Total: {{ formatCurrency(forecastData?.totalExpense || 0) }}</span>
-              <span class="mx-2">•</span>
-              <span>Saldo Final: 
-                <span :class="forecastData?.performance >= 0 ? 'text-green-600' : 'text-red-600'">
-                  {{ formatCurrency(forecastData?.performance || 0) }}
-                </span>
-              </span>
+              <span>Limite Diário: {{ formatCurrency(forecastData?.dailyLimit || 0) }}</span>
             </div>
           </div>
           
@@ -41,30 +34,30 @@
       </template>
     </Card>
 
-    <!-- Legenda das Cores (alterada) -->
+    <!-- Legenda das Cores -->
     <Card class="mb-4">
       <template #content>
         <div class="flex flex-wrap gap-4 justify-center items-center">
           <div class="flex items-center gap-2">
             <div class="w-4 h-4 bg-green-500 rounded"></div>
-            <span class="text-sm text-surface-700 dark:text-surface-300">Saldo positivo</span>
+            <span class="text-sm text-surface-700 dark:text-surface-300">Dentro do limite</span>
           </div>
           <div class="flex items-center gap-2">
             <div class="w-4 h-4 bg-yellow-500 rounded"></div>
-            <span class="text-sm text-surface-700 dark:text-surface-300">Saldo próximo de zero</span>
+            <span class="text-sm text-surface-700 dark:text-surface-300">Perto do limite</span>
           </div>
           <div class="flex items-center gap-2">
             <div class="w-4 h-4 bg-red-500 rounded"></div>
-            <span class="text-sm text-surface-700 dark:text-surface-300">Saldo negativo</span>
+            <span class="text-sm text-surface-700 dark:text-surface-300">Ultrapassou limite</span>
           </div>
         </div>
       </template>
     </Card>
 
-    <!-- Grid do Calendário (alterado) -->
+    <!-- Grid do Calendário -->
     <Card>
       <template #content>
-        <!-- Cabeçalho dos dias da semana (mantido) -->
+        <!-- Cabeçalho dos dias da semana -->
         <div class="grid grid-cols-7 gap-1 mb-2">
           <div 
             v-for="dayName in dayNames" 
@@ -75,46 +68,47 @@
           </div>
         </div>
 
-        <!-- Grid dos dias do mês (alterado) -->
+        <!-- Grid dos dias do mês -->
         <div class="grid grid-cols-7 gap-1">
-          <!-- Dias vazios do início do mês (mantido) -->
+          <!-- Dias vazios do início do mês -->
           <div 
             v-for="emptyDay in startEmptyDays" 
             :key="`empty-start-${emptyDay}`"
             class="aspect-square"
           ></div>
 
-          <!-- Dias do mês (alterado) -->
+          <!-- Dias do mês -->
           <div 
             v-for="day in daysInMonth" 
             :key="day"
             class="relative aspect-square border rounded-lg cursor-pointer transition-all hover:shadow-md"
             :class="getDayClasses(day)"
             @click="showDayDetails($event, day)"
+            @mouseenter="showTooltip($event, day)"
+            @mouseleave="hideTooltip"
           >
             <div class="absolute top-1 left-1 text-xs font-medium text-surface-900 dark:text-surface-100">
               {{ day }}
             </div>
             
-            <!-- Indicador de saldo (novo) -->
+            <!-- Indicador de gastos -->
             <div 
-              v-if="getDayData(day)?.runningBalance !== undefined"
-              class="absolute bottom-1 right-1 text-xs font-bold"
-              :class="getDayData(day).runningBalance >= 0 ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'"
+              v-if="getDayData(day)?.totalSpent > 0"
+              class="absolute bottom-1 right-1 text-xs font-bold text-white bg-surface-900/20 rounded px-1"
             >
-              {{ formatCurrencyShort(getDayData(day).runningBalance) }}
+              {{ formatCurrencyShort(getDayData(day)?.totalSpent || 0) }}
             </div>
 
-            <!-- Indicador de número de transações (alterado) -->
+            <!-- Indicador de número de transações -->
             <div 
-              v-if="(getDayData(day)?.expenses?.length || getDayData(day)?.incomes?.length)"
+              v-if="getDayData(day)?.expenses?.length > 0"
               class="absolute top-1 right-1 w-4 h-4 bg-surface-700 dark:bg-surface-300 text-white dark:text-surface-900 rounded-full flex items-center justify-center text-xs font-bold"
             >
-              {{ (getDayData(day).expenses?.length || 0) + (getDayData(day).incomes?.length || 0) }}
+              {{ getDayData(day).expenses.length }}
             </div>
           </div>
 
-          <!-- Dias vazios do final do mês (mantido) -->
+          <!-- Dias vazios do final do mês -->
           <div 
             v-for="emptyDay in endEmptyDays" 
             :key="`empty-end-${emptyDay}`"
@@ -124,66 +118,35 @@
       </template>
     </Card>
 
-    <!-- Tooltip/OverlayPanel para detalhes do dia (alterado) -->
+    <!-- Tooltip/OverlayPanel para detalhes do dia -->
     <OverlayPanel ref="dayDetailsPanel" class="w-80">
       <div v-if="selectedDayData">
         <h4 class="font-semibold text-surface-950 dark:text-surface-0 mb-3">
           {{ formatDayDate(selectedDay) }}
         </h4>
         
-        <div class="mb-3 space-y-2">
-          <div class="flex justify-between items-center">
-            <span class="text-surface-600 dark:text-surface-400">Entradas:</span>
-            <span class="font-semibold text-green-600">
-              {{ formatCurrency(selectedDayData.income) }}
+        <div class="mb-3">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-surface-600 dark:text-surface-400">Total Gasto:</span>
+            <span class="font-semibold text-surface-950 dark:text-surface-0">
+              {{ formatCurrency(selectedDayData.totalSpent) }}
             </span>
           </div>
           <div class="flex justify-between items-center">
-            <span class="text-surface-600 dark:text-surface-400">Saídas:</span>
-            <span class="font-semibold text-red-600">
-              {{ formatCurrency(selectedDayData.expense) }}
-            </span>
-          </div>
-          <div class="flex justify-between items-center pt-2 border-t border-surface-200 dark:border-surface-700">
-            <span class="text-surface-600 dark:text-surface-400">Saldo do dia:</span>
-            <span class="font-semibold" :class="selectedDayData.runningBalance >= 0 ? 'text-green-600' : 'text-red-600'">
-              {{ formatCurrency(selectedDayData.runningBalance) }}
+            <span class="text-surface-600 dark:text-surface-400">Disponível:</span>
+            <span class="font-semibold" :class="selectedDayData.available >= 0 ? 'text-green-600' : 'text-red-600'">
+              {{ formatCurrency(selectedDayData.available) }}
             </span>
           </div>
         </div>
 
-        <!-- Lista de receitas (novo) -->
-        <div v-if="selectedDayData.incomes?.length > 0">
-          <h5 class="font-medium text-surface-800 dark:text-surface-200 mb-2">Receitas:</h5>
-          <div class="space-y-2 max-h-40 overflow-y-auto">
-            <div 
-              v-for="income in selectedDayData.incomes" 
-              :key="'i'+income.id"
-              class="flex justify-between items-start p-2 bg-green-50 dark:bg-green-900/20 rounded"
-            >
-              <div class="flex-1 min-w-0">
-                <div class="font-medium text-sm text-surface-900 dark:text-surface-100 truncate">
-                  {{ income.description }}
-                </div>
-                <div class="text-xs text-surface-500 dark:text-surface-400">
-                  {{ income.bankName }}
-                </div>
-              </div>
-              <div class="font-semibold text-sm text-green-700 dark:text-green-300 ml-2">
-                +{{ formatCurrency(income.amount) }}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Lista de despesas (alterado) -->
         <div v-if="selectedDayData.expenses?.length > 0">
           <h5 class="font-medium text-surface-800 dark:text-surface-200 mb-2">Despesas:</h5>
           <div class="space-y-2 max-h-40 overflow-y-auto">
             <div 
               v-for="expense in selectedDayData.expenses" 
-              :key="'e'+expense.id"
-              class="flex justify-between items-start p-2 bg-red-50 dark:bg-red-900/20 rounded"
+              :key="expense.id"
+              class="flex justify-between items-start p-2 bg-surface-50 dark:bg-surface-800 rounded"
             >
               <div class="flex-1 min-w-0">
                 <div class="font-medium text-sm text-surface-900 dark:text-surface-100 truncate">
@@ -193,21 +156,21 @@
                   {{ expense.bankName }}
                 </div>
               </div>
-              <div class="font-semibold text-sm text-red-700 dark:text-red-300 ml-2">
-                -{{ formatCurrency(expense.amount) }}
+              <div class="font-semibold text-sm text-surface-900 dark:text-surface-100 ml-2">
+                {{ formatCurrency(expense.amount) }}
               </div>
             </div>
           </div>
         </div>
         
-        <div v-if="!selectedDayData.incomes?.length && !selectedDayData.expenses?.length" 
-             class="text-center text-surface-500 dark:text-surface-400 py-4">
-          Nenhuma transação neste dia
+        <div v-else class="text-center text-surface-500 dark:text-surface-400 py-4">
+          Nenhuma despesa neste dia
         </div>
       </div>
     </OverlayPanel>
   </div>
 </template>
+
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import FinancialForecastCalendarService from '@/service/FinancialForecastCalendarService';
@@ -316,36 +279,21 @@ const getDayData = (day) => {
   return forecastData.value.days.find(d => d.date === dateStr);
 };
 
-// const getDayClasses = (day) => {
-//   const dayData = getDayData(day);
-//   if (!dayData) return 'bg-surface-0 dark:bg-surface-900 border-surface-200 dark:border-surface-700';
-  
-//   const baseClasses = 'border-surface-200 dark:border-surface-700';
-  
-//   if (dayData.runningBalance > dayData.dailyLimit * 0.3) {
-//     return `${baseClasses} bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50`;
-//   } else if (dayData.runningBalance > 0) {
-//     return `${baseClasses} bg-yellow-100 dark:bg-yellow-900/30 hover:bg-yellow-200 dark:hover:bg-yellow-900/50`;
-//   } else {
-//     return `${baseClasses} bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50`;
-//   }
-// };
-
 const getDayClasses = (day) => {
   const dayData = getDayData(day);
   if (!dayData) return 'bg-surface-0 dark:bg-surface-900 border-surface-200 dark:border-surface-700';
   
   const baseClasses = 'border-surface-200 dark:border-surface-700';
   
-  if (dayData.runningBalance > 0) {
-    // Saldo positivo - verde
-    return `${baseClasses} bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50`;
-  } else if (dayData.runningBalance === 0) {
-    // Saldo zero - amarelo
-    return `${baseClasses} bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:hover:bg-yellow-900/50`;
-  } else {
-    // Saldo negativo - vermelho
-    return `${baseClasses} bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50`;
+  switch (dayData.color) {
+    case 'green':
+      return `${baseClasses} bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50`;
+    case 'yellow':
+      return `${baseClasses} bg-yellow-100 dark:bg-yellow-900/30 hover:bg-yellow-200 dark:hover:bg-yellow-900/50`;
+    case 'red':
+      return `${baseClasses} bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50`;
+    default:
+      return `${baseClasses} bg-surface-0 dark:bg-surface-900 hover:bg-surface-50 dark:hover:bg-surface-800`;
   }
 };
 
