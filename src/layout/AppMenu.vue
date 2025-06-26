@@ -26,6 +26,14 @@ const model = ref([
     items: [
       { label: 'Dashboard', icon: 'pi pi-fw pi-id-card', to: '/financas' },
       { label: 'Transações', icon: 'pi pi-fw pi-wallet', to: '/transacoes' },
+      { label: 'Previsibilidade', icon: 'pi pi-fw pi-calendar', to: '/previsibilidade' },
+      // { label: 'Planejamento', icon: 'pi pi-fw pi-chart-line', to: '/planejamento' },
+      // { label: 'Orçamento', icon: 'pi pi-fw pi-dollar', to: '/orcamento' },
+      // { label: 'Contas a Pagar', icon: 'pi pi-fw pi-credit-card', to: '/contas-a-pagar' },
+      // { label: 'Contas a Receber', icon: 'pi pi-fw pi-money-bill', to: '/contas-a-receber' },
+      // { label: 'Bancos', icon: 'pi pi-fw pi-building', to: '/bancos' },
+      
+      
     ],
   },
   {
