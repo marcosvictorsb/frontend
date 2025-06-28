@@ -58,7 +58,7 @@
     <Card>
       <template #content>
         <!-- Cabeçalho dos dias da semana -->
-        <div class="grid grid-cols-7 gap-1 mb-2">
+        <div class="grid grid-cols-7 gap-2 md:gap-3 mb-3">
           <div 
             v-for="dayName in dayNames" 
             :key="dayName"
@@ -69,7 +69,7 @@
         </div>
 
         <!-- Grid dos dias do mês -->
-        <div class="grid grid-cols-7 gap-1">
+        <div class="grid grid-cols-7 gap-2 md:gap-3">
           <!-- Dias vazios do início do mês -->
           <div 
             v-for="emptyDay in startEmptyDays" 
@@ -87,14 +87,14 @@
             @mouseenter="showTooltip($event, day)"
             @mouseleave="hideTooltip"
           >
-            <div class="absolute top-1 left-1 text-xs font-medium text-surface-900 dark:text-surface-100">
+            <div class="absolute top-0.5 left-0.5 md:top-1 md:left-1 text-xs font-medium text-surface-900 dark:text-surface-100">
               {{ day }}
             </div>
             
             <!-- Indicador de gastos -->
             <div 
               v-if="getDayData(day)?.totalSpent > 0"
-              class="absolute bottom-1 right-1 text-xs font-bold text-white bg-surface-900/20 rounded px-1"
+              class="absolute bottom-0.5 right-0.5 md:bottom-1 md:right-1 text-xs font-bold text-white bg-surface-900/60 rounded px-1"
             >
               {{ formatCurrencyShort(getDayData(day)?.totalSpent || 0) }}
             </div>
@@ -102,7 +102,7 @@
             <!-- Indicador de número de transações -->
             <div 
               v-if="getDayData(day)?.expenses?.length > 0"
-              class="absolute top-1 right-1 w-4 h-4 bg-surface-700 dark:bg-surface-300 text-white dark:text-surface-900 rounded-full flex items-center justify-center text-xs font-bold"
+              class="absolute top-0.5 right-0.5 md:top-1 md:right-1 w-3 h-3 md:w-4 md:h-4 bg-surface-700 dark:bg-surface-300 text-white dark:text-surface-900 rounded-full flex items-center justify-center text-xs font-bold"
             >
               {{ getDayData(day).expenses.length }}
             </div>
@@ -353,12 +353,18 @@ onMounted(() => {
 <style scoped>
 .financial-forecast-calendar .aspect-square {
   aspect-ratio: 1;
-  min-height: 80px;
+  min-height: 75px;
 }
 
-@media (max-width: 768px) {
+@media (min-width: 768px) {
   .financial-forecast-calendar .aspect-square {
-    min-height: 60px;
+    min-height: 90px;
+  }
+}
+
+@media (max-width: 480px) {
+  .financial-forecast-calendar .aspect-square {
+    min-height: 65px;
   }
 }
 </style>
