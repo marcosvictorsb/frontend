@@ -660,14 +660,6 @@ const recalculateRunningBalance = () => {
   }
 };
 
-const showTooltip = (event, day) => {
-  // Implementar tooltip se necessário
-};
-
-const hideTooltip = () => {
-  // Implementar hide tooltip se necessário
-};
-
 const fetchForecastData = async () => {
   loading.value = true;
   try {

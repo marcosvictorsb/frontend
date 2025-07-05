@@ -1,71 +1,8 @@
 <template>
-  <div class="card mt-2">
-    <Toolbar class="mb-6">
-      <template #start>
-
-      </template>
-
-      <template #end>
-        <Button label="Receita" icon="pi pi-dollar" severity="success" @click="openNew(isIncome = true)" />
-        <Button label="Despesa" icon="pi pi-shopping-cart" severity="warn" class="ml-2"
-          @click="openNew(isIncome = false)" />
-        <!-- <Button label="Delete" icon="pi pi-trash" severity="danger"  class="ml-1" outlined @click="confirmDeleteSelected" :disabled="!selectedTransactions || !selectedTransactions.length" />               -->
-      </template>
-    </Toolbar>
-
-    <DataTable ref="dt" v-model:selection="selectedTransactions" :value="transactions" dataKey="id" :paginator="true"
-      :rows="10" :filters="filters"
-      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-      :rowsPerPageOptions="[5, 10, 25]"
-      currentPageReportTemplate=" Mostrando {first} a {last} de {totalRecords} registros" :size="'small'">
-
-      <template #header>
-        <div class="flex flex-wrap gap-2 items-center justify-between">
-          <h4 class="m-0">Gerencias os Gastos</h4>
-          <IconField>
-            <InputIcon>
-              <i class="pi pi-search" />
-            </InputIcon>
-            <InputText v-model="filters['global'].value" placeholder="Procurar..." />
-          </IconField>
-        </div>
-      </template>
-
-      <template #empty>
-        Nenhuma despesa ou receita cadastrada
-      </template>
-
-      <!-- <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column> -->
-      <Column field="description" header="Descrição" sortable style="min-width: 12rem"></Column>
-      <Column field="amount" header="Valor" sortable style="min-width: 8rem">
-        <template #body="slotProps">
-          {{ formatCurrency(slotProps.data.amount) }}
-        </template>
-      </Column>
-      <Column field="reference_month" header="Mês de Referência" sortable style="min-width: 8rem"></Column>
-      <Column field="date_payment" header="Data do Pagamento" sortable style="min-width: 8rem">
-        <template #body="slotProps">
-          {{ ajustDateToColumn(slotProps.data.date_payment) }}
-        </template>
-      </Column>
-      <Column field="type" header="Tipo" sortable style="min-width: 8rem">
-        <template #body="slotProps">
-          <Tag :value="slotProps.data.type" :severity="getSeverityType(slotProps.data)" />
-        </template>
-      </Column>
-      <Column field="status" header="Status" sortable style="min-width: 8rem">
-        <template #body="slotProps">
-          <Tag :value="slotProps.data.status" :severity="getSeverityStatus(slotProps.data)" />
-        </template>
-      </Column>
-
-      <Column :exportable="false" header="Ações" style="min-width: 6rem">
-        <template #body="slotProps">
-          <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editTransaction(slotProps.data)" />
-          <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteProduct(slotProps.data)" />
-        </template>
-      </Column>
-    </DataTable>
+  <div class="w-full mt-3">
+    <!-- Nova lista de transações responsiva -->
+    <TransactionsList :transactions="transactions" @new-income="openNew(true)" @new-expense="openNew(false)"
+      @edit-transaction="editTransaction" @delete-transaction="confirmDeleteProduct" />
   </div>
 
   <Dialog v-model:visible="transactionDialog" :style="{ width: '450px' }" :header="title" :modal="true">
@@ -194,16 +131,12 @@
 
 <script setup>
 import { ref } from 'vue';
-import { FilterMatchMode } from '@primevue/core/api';
 import { formatCurrency } from '@/shared/Utils'
+import TransactionsList from './TransactionsList.vue'
 
 const dt = ref();
 const transactionDialog = ref(false);
 const deleteTransactionDialog = ref(false);
-const selectedTransactions = ref([]);
-const filters = ref({
-  'global': { value: null, matchMode: FilterMatchMode.CONTAINS },
-});
 const submitted = ref(false);
 
 const transaction = ref();
